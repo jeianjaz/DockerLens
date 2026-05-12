@@ -3,9 +3,73 @@
 import random
 import time
 
-from flask import Flask, jsonify, request
+from flask import Flask, g, jsonify, request
+from prometheus_client import (
+    Counter,
+    Histogram,
+    Info,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
+)
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Prometheus Metrics (RED: Rate, Errors, Duration)
+# ---------------------------------------------------------------------------
+
+# RATE + ERRORS — Counter counts total requests, labeled by method/endpoint/status.
+#   Rate  = rate(http_requests_total[5m])
+#   Errors = rate(http_requests_total{status=~"5.."}[5m])
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+
+# DURATION — Histogram measures how long each request takes.
+#   Buckets define the "bins" for latency: <10ms, <25ms, ... <10s.
+REQUEST_LATENCY = Histogram(
+    "http_request_duration_seconds",
+    "Request latency in seconds",
+    ["method", "endpoint"],
+    buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+)
+
+# App info — static label, useful in Grafana dashboards
+APP_INFO = Info("dockerlens", "DockerLens application info")
+APP_INFO.info({"version": "1.0.0", "environment": "production"})
+
+
+@app.before_request
+def _start_timer():
+    """Record request start time — runs before every request."""
+    g.start_time = time.time()
+
+
+@app.after_request
+def _record_metrics(response):
+    """Record RED metrics — runs after every request."""
+    # Skip /metrics endpoint itself to avoid self-counting
+    if request.path == "/metrics":
+        return response
+
+    elapsed = time.time() - g.start_time
+    endpoint = request.path
+    method = request.method
+    status = str(response.status_code)
+
+    REQUEST_COUNT.labels(method=method, endpoint=endpoint, status=status).inc()
+    REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(elapsed)
+
+    return response
+
+
+@app.route("/metrics")
+def metrics():
+    """Prometheus scrape endpoint — returns all metrics in Prometheus format."""
+    return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
+
 
 # ---------------------------------------------------------------------------
 # Endpoints
