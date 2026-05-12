@@ -1,0 +1,20 @@
+# Service gives pods a stable DNS name and load-balances traffic across them
+# Other pods reach the app via: http://dockerlens-app.dockerlens:8080
+apiVersion: v1
+kind: Service
+metadata:
+  name: dockerlens-app
+  namespace: dockerlens
+  labels:
+    app: dockerlens
+    component: app
+spec:
+  type: ClusterIP                      # Internal only (no external IP)
+  selector:
+    app: dockerlens                    # Route to pods with these labels
+    component: app
+  ports:
+    - name: http
+      port: 8080                       # Service port
+      targetPort: 8080                 # Container port
+      protocol: TCP

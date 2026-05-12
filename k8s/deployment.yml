@@ -1,0 +1,62 @@
+# Deployment manages pods (replicas) of the Flask app
+# It ensures 2 copies are always running and handles rolling updates
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dockerlens-app
+  namespace: dockerlens
+  labels:
+    app: dockerlens
+    component: app
+spec:
+  replicas: 2                          # Run 2 copies of the app
+  selector:
+    matchLabels:
+      app: dockerlens
+      component: app
+  strategy:
+    type: RollingUpdate                # Zero-downtime deploys
+    rollingUpdate:
+      maxSurge: 1                      # Allow 1 extra pod during update
+      maxUnavailable: 0                # Never have 0 running pods
+  template:
+    metadata:
+      labels:
+        app: dockerlens
+        component: app
+      annotations:
+        prometheus.io/scrape: "true"   # Tell Prometheus to scrape these pods
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: dockerlens
+          image: dockerlens:latest
+          imagePullPolicy: Never       # Use local image (minikube)
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: FLASK_ENV
+              value: "production"
+          resources:
+            requests:                  # Minimum resources guaranteed
+              cpu: "100m"              # 0.1 CPU core
+              memory: "128Mi"          # 128 MB RAM
+            limits:                    # Maximum resources allowed
+              cpu: "500m"              # 0.5 CPU core
+              memory: "256Mi"          # 256 MB RAM
+          livenessProbe:               # "Is the container alive?"
+            httpGet:                   # K8s sends GET /health every 15s
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3        # Restart after 3 consecutive failures
+          readinessProbe:              # "Is the container ready for traffic?"
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3        # Remove from Service after 3 failures

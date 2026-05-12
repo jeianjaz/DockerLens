@@ -1,0 +1,7 @@
+# Namespace isolates all DockerLens resources from other apps in the cluster
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dockerlens
+  labels:
+    app: dockerlens
