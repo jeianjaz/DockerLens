@@ -1,0 +1,6 @@
+apiVersion: v2
+name: dockerlens
+description: Observable containerized Flask app with Prometheus metrics
+type: application
+version: 1.0.0        # Chart version (bump when you change templates)
+appVersion: "1.0.0"   # App version (bump when you change app code)

@@ -1,0 +1,46 @@
+# Default values for DockerLens Helm chart
+# Override these per environment (dev, staging, prod) without changing templates
+
+namespace: dockerlens
+
+image:
+  repository: dockerlens
+  tag: latest
+  pullPolicy: Never          # "Never" for minikube, "Always" for production
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8080
+
+container:
+  port: 8080
+  env:
+    FLASK_ENV: production
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilization: 70
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
