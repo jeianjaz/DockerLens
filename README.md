@@ -7,12 +7,12 @@ Containerized Flask application with full observability stack: Prometheus metric
 | Step | Description | Status |
 |------|-------------|--------|
 | 1 | Flask app + Dockerfile + docker-compose | 🟢 DONE |
-| 2 | Prometheus metrics instrumentation | ⬜ |
-| 3 | Prometheus + Grafana stack | ⬜ |
-| 4 | Grafana dashboards (RED metrics) | ⬜ |
-| 5 | Alert rules (high error rate, latency) | ⬜ |
-| 6 | Trivy image scanning in CI | ⬜ |
-| 7 | Kubernetes manifests (Deployment, Service, HPA) | ⬜ |
+| 2 | Prometheus metrics instrumentation | 🟢 DONE |
+| 3 | Prometheus + Grafana stack | 🟢 DONE |
+| 4 | Grafana dashboards (RED metrics) | 🟢 DONE |
+| 5 | Alert rules (high error rate, latency) | 🟢 DONE |
+| 6 | Trivy image scanning in CI | 🟢 DONE |
+| 7 | Kubernetes manifests (Deployment, Service, HPA) | ⬜ on going |
 | 8 | Helm chart / Kustomize | ⬜ |
 | 9 | Chaos test (pod kill + recovery) | ⬜ |
 | 10 | EKS deploy + README + ADRs | ⬜ |
