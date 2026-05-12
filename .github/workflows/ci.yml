@@ -1,0 +1,62 @@
+name: CI — Build, Scan & Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---- Job 1: Build Docker image + Trivy security scan ----
+  trivy-scan:
+    name: Trivy Image Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t dockerlens:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: "dockerlens:${{ github.sha }}"
+          format: "table"
+          exit-code: "1"                    # Fail pipeline if vulnerabilities found
+          severity: "CRITICAL,HIGH"         # Only fail on CRITICAL or HIGH
+          ignore-unfixed: true              # Skip vulnerabilities with no fix available
+
+  # ---- Job 2: Python lint ----
+  python-lint:
+    name: Python Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install flake8
+          pip install -r app/requirements.txt
+
+      - name: Run flake8
+        run: flake8 app/ --max-line-length=120 --count --show-source --statistics
+
+  # ---- Job 3: Dockerfile lint ----
+  hadolint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
