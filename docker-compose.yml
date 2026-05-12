@@ -25,12 +25,26 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.retention.time=7d"
     depends_on:
       - app
+      - alertmanager
+    restart: unless-stopped
+
+  # ---------- AlertManager (notification routing) ----------
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: dockerlens-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
     restart: unless-stopped
 
   # ---------- Grafana (dashboards + visualization) ----------

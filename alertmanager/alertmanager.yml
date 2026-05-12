@@ -1,0 +1,20 @@
+# AlertManager configuration for DockerLens
+# Defines HOW and WHERE to send alerts when they fire
+
+global:
+  resolve_timeout: 1m    # How long to wait before marking an alert as resolved
+
+route:
+  receiver: "webhook"           # Default receiver for all alerts
+  group_by: ["alertname"]       # Group alerts with same name together
+  group_wait: 10s               # Wait 10s before sending first notification (to batch)
+  group_interval: 30s           # Wait 30s between notifications for same group
+  repeat_interval: 1h           # Re-send if alert still firing after 1 hour
+
+receivers:
+  # Webhook receiver — logs alerts to stdout (visible in docker logs)
+  # In production, this would be Slack, PagerDuty, email, etc.
+  - name: "webhook"
+    webhook_configs:
+      - url: "http://app:8080/health"   # Dummy endpoint for demo
+        send_resolved: true
