@@ -1,0 +1,18 @@
+# Prometheus configuration for DockerLens
+# Scrapes the Flask app's /metrics endpoint every 15 seconds
+
+global:
+  scrape_interval: 15s          # How often to pull metrics from targets
+  evaluation_interval: 15s      # How often to evaluate alerting rules
+
+scrape_configs:
+  # Prometheus monitors itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # DockerLens Flask app
+  - job_name: "dockerlens"
+    static_configs:
+      - targets: ["app:8080"]   # "app" = the service name in docker-compose
+    metrics_path: "/metrics"

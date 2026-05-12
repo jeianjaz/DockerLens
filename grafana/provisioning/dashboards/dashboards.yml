@@ -1,0 +1,13 @@
+# Auto-provision dashboards from JSON files in /etc/grafana/dashboards/
+apiVersion: 1
+
+providers:
+  - name: "DockerLens"
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: false
