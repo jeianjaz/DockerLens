@@ -4,37 +4,7 @@ A production-grade containerized Flask application with full observability: Prom
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Kubernetes Cluster                        │
-│                                                              │
-│  ┌──────────┐    ┌──────────┐    ┌────────────────────┐     │
-│  │  Flask   │    │  Flask   │    │   HPA (2→5 pods)   │     │
-│  │  Pod #1  │    │  Pod #2  │    │   CPU target: 70%  │     │
-│  └────┬─────┘    └────┬─────┘    └────────────────────┘     │
-│       │               │                                      │
-│       └───────┬───────┘                                      │
-│               │                                              │
-│        ┌──────┴──────┐                                       │
-│        │   Service   │ ◄── ClusterIP load balancer           │
-│        └──────┬──────┘                                       │
-└───────────────┼──────────────────────────────────────────────┘
-                │
-    ┌───────────┼───────────────────────────────┐
-    │           ▼                               │
-    │    ┌─────────────┐     ┌──────────────┐   │
-    │    │ Prometheus  │────►│ AlertManager │   │
-    │    │  :9090      │     │   :9093      │   │
-    │    └──────┬──────┘     └──────────────┘   │
-    │           │                               │
-    │           ▼                               │
-    │    ┌─────────────┐                        │
-    │    │   Grafana   │  RED Dashboards        │
-    │    │   :3000     │                        │
-    │    └─────────────┘                        │
-    │        Observability Stack                 │
-    └───────────────────────────────────────────┘
-```
+![DockerLens Architecture](docs/adr/architecture.png)
 
 ## Project Status
 
